@@ -10,18 +10,17 @@
 
 #define MAX_INPUT_LEN 256
 
-// Hàm kiểm tra khoảng trắng đầu chuỗi
+
 static int has_leading_whitespace(const char* s) {
     if (!s || s[0] == '\0') return 0;
     return isspace((unsigned char)s[0]);
 }
 
-// Hàm tách chuỗi đơn giản dựa trên dấu phẩy
 static void simple_split(char* input, char delimiter, char tokens[][MAX_NAME_LEN], int* count, int max_tokens) {
     *count = 0;
     char delim[2] = {delimiter, '\0'};
     char* token = strtok(input, delim);
-    while (token && *count < max_tokens) {
+    while (token != NULL  && *count < max_tokens) {
         strncpy(tokens[(*count)++], token, MAX_NAME_LEN - 1);
         tokens[*count - 1][MAX_NAME_LEN - 1] = '\0';
         token = strtok(NULL, delim);
@@ -40,7 +39,6 @@ static void add_student_flow(Graph* graph, HobbyTable* hobby_table, HabitTable* 
 
     printf("Nhap ID sinh vien: ");
     if (!fgets(buffer, sizeof(buffer), stdin)) return;
-    buffer[strcspn(buffer, "\r\n")] = 0;
     strncpy(s.id, buffer, MAX_ID_LEN - 1);
 
     if (graph_find_student_index(graph, s.id) != -1) {
@@ -215,6 +213,92 @@ static void remove_friendship_flow(Graph* graph) {
     }
 }
 
+static int count_common_friends(Student* student1, Student* student2){
+    int common_count=0;
+    for (int i=0; i<student1->friends_count; i++) {
+        for (int j=0; j<student2->friends_count; j++) {
+            if (strcmp(student1->friends[i], student2->friends[j]) == 0) {
+                common_count++;  
+                break; 
+        }
+    }
+}
+    return common_count;
+}
+static void find_most_common_friends(Graph* g){
+    char student_id[MAX_ID_LEN];
+
+    printf("Nhap ID sinh vien can tim: ");
+    if (!fgets(student_id, sizeof(student_id), stdin)) return;
+    student_id[strcspn(student_id, "\r\n")] = 0;
+
+    Student* studentA = NULL;
+
+    for (int i = 0; i <g->student_count; i++) {
+        if (strcmp(g->students[i].id, student_id) == 0) {
+            studentA = &g->students[i];
+            break;
+        }
+    }
+
+    if (studentA == NULL) {
+        printf("Sinh vien khong ton tai.\n");
+        return;
+    }
+
+    int max_common = 0;
+    Student* best_match = NULL;
+
+    for (int i = 0; i <g->student_count; i++) {
+        if (strcmp(g->students[i].id, student_id) != 0) {
+            int common_count = count_common_friends(studentA, &g->students[i]);
+            if (common_count > max_common) {
+                max_common = common_count;
+                best_match = &g->students[i];
+            }
+        }
+    }
+
+    if (best_match != NULL) {
+        printf("Sinh vien co nhieu ban chung nhat voi %s (ID: %s) la %s (ID: %s) voi %d ban chung.\n",
+               studentA->name, studentA->id, best_match->name, best_match->id, max_common);
+    } else {
+        printf("Khong co sinh vien nao co ban chung voi %s.\n", studentA->name);
+    }
+} 
+static void search_student(Graph* g, HobbyTable* hobby_table, HabitTable* habit_table){
+    char id[MAX_ID_LEN];
+    printf("Nhap ID sinh vien can tim:");
+    if(!fgets(id, sizeof(id), stdin)) return;
+    id[strcspn(id, "\r\n")]=0;
+    const Student* found_student = graph_get_student(g, id);
+    if(found_student) {
+        printf("Thong tin sinh vien\n");
+        printf("ID:%s\n", found_student->id);
+        printf("Ten:%s\n", found_student->name);
+
+        printf("So thich:");
+        for (int i=0; i<found_student->hobbies_count; i++){
+            printf("%s", hobby_table->list[i]);
+            if (i<found_student->hobbies_count -1) printf(", ");
+        }
+        printf ("\n");
+        printf("Thoi quen:");
+        for (int i=0; i<found_student->habits_count; i++){
+            printf("%s", habit_table->list[i]);
+            if (i<found_student->habits_count -1) printf(", ");
+        }
+         printf("\n");
+        printf("Danh sach ban be: ");
+        for (int i = 0; i < found_student->friends_count; i++) {
+            printf("%s", found_student->friends[i]);
+            if (i < found_student->friends_count - 1) printf(", ");
+        }
+         printf("\n");
+        } else {
+        printf("Khong tim thay sinh vien.");
+    }
+}
 void cli_run(Graph* graph, HobbyTable* hobby_table, HabitTable* habit_table) {
     int choice = -1;
     char input[MAX_INPUT_LEN];
@@ -226,10 +310,13 @@ void cli_run(Graph* graph, HobbyTable* hobby_table, HabitTable* habit_table) {
         printf("3. Goi y ban be cho mot sinh vien\n");
         printf("4. Liet ke danh sach sinh vien\n");
         printf("5. Xoa quan he ban be\n");
+        printf("6. Tim sinh vien co nhieu ban chung nhat\n");
+        printf("7. Tim kiem thong tin sinh vien\n");
         printf("0. Thoat chuong trinh\n");
         printf("Lua chon cua ban: ");
 
         if (!fgets(input, sizeof(input), stdin)) break;
+        input[strcspn(input, "\r\n")] = 0;
         choice = atoi(input);
 
         switch (choice) {
@@ -247,6 +334,12 @@ void cli_run(Graph* graph, HobbyTable* hobby_table, HabitTable* habit_table) {
                 break;
             case 5:
                 remove_friendship_flow(graph);
+                break;
+            case 6:
+                find_most_common_friends(graph);
+                break;
+            case 7:
+                search_student(graph, hobby_table, habit_table);
                 break;
             case 0:
                 printf("Cam on ban da su dung he thong. Tam biet!\n");
