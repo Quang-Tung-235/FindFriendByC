@@ -80,7 +80,7 @@ int load_students(const char* filename, Graph* graph, HobbyTable* hobby_table, H
         line5[strcspn(line5, "\r\n")] = 0;
 
         Student s = {0};
-        strncpy(s.id, line1, MAX_ID_LEN - 1);
+        strncpy(s.id, line1, MAX_ID_LEN - 1); 
         strncpy(s.name, line2, MAX_NAME_LEN - 1);
 
         // 1. Thêm bạn bè
@@ -95,7 +95,7 @@ int load_students(const char* filename, Graph* graph, HobbyTable* hobby_table, H
         while (token != NULL) {
             int idx = atoi(token);
             if (idx >= 0 && idx < hobby_table->count) {
-                student_add_hobby(&s, hobby_table->list[idx]);
+                student_add_hobby(&s, hobby_table->list[idx-1]);
             }
             token = strtok(NULL, " \t");
         }
@@ -105,7 +105,7 @@ int load_students(const char* filename, Graph* graph, HobbyTable* hobby_table, H
         while (token != NULL) {
             int idx = atoi(token);
             if (idx >= 0 && idx < habit_table->count) {
-                student_add_habit(&s, habit_table->list[idx]);
+                student_add_habit(&s, habit_table->list[idx-1]);
             }
             token = strtok(NULL, " \t");
         }

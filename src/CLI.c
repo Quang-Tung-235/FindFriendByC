@@ -26,7 +26,6 @@ static void simple_split(char* input, char delimiter, char tokens[][MAX_NAME_LEN
         token = strtok(NULL, delim);
     }
 }
-
 static void add_student_flow(Graph* graph, HobbyTable* hobby_table, HabitTable* habit_table) {
     if (graph->student_count >= MAX_STUDENTS) {
         printf("He thong da day, khong the them sinh vien moi.\n");
@@ -39,6 +38,7 @@ static void add_student_flow(Graph* graph, HobbyTable* hobby_table, HabitTable* 
 
     printf("Nhap ID sinh vien: ");
     if (!fgets(buffer, sizeof(buffer), stdin)) return;
+    buffer[strcspn(buffer, "\r\n")] = 0;
     strncpy(s.id, buffer, MAX_ID_LEN - 1);
 
     if (graph_find_student_index(graph, s.id) != -1) {
@@ -136,7 +136,7 @@ static void suggest_friends_flow(Graph* graph) {
     if (!fgets(user_id, sizeof(user_id), stdin)) return;
     user_id[strcspn(user_id, "\r\n")] = 0;
 
-    recommend_friends(graph, user_id, 5, 1.0, 0.5);
+    recommend_friends(graph, user_id, 5, 1.0, 1.0);
 }
 
 static void list_students_flow(Graph* graph) {
@@ -145,33 +145,36 @@ static void list_students_flow(Graph* graph) {
         return;
     }
 
-    printf("ID         | Ten                 | So thich                   | Thoi quen                  | Ban be\n");
+    printf("     ID    |         Ten         | So thich                   | Thoi quen                  | Ban be\n");
     printf("---------------------------------------------------------------------------------------------\n");
 
     for (int i = 0; i < graph->student_count; i++) {
         Student* s = &graph->students[i];
 
         printf("%-10s | %-20s | ", s->id, s->name);
-
+        if (s->hobbies_count == 0) printf("(khong co)");
+        else{
         for (int j = 0; j < s->hobbies_count; j++) {
             printf("%s", s->hobbies[j]);
             if (j < s->hobbies_count - 1) printf(", ");
+            }
         }
-        if (s->hobbies_count == 0) printf("(khong co)");
         printf(" | ");
-
+        if (s->habits_count == 0) printf("(khong co)");
+        else{
         for (int j = 0; j < s->habits_count; j++) {
             printf("%s", s->habits[j]);
             if (j < s->habits_count - 1) printf(", ");
+            }
         }
-        if (s->habits_count == 0) printf("(khong co)");
         printf(" | ");
-
+        if (s->friends_count == 0) printf("(chua co)");
+        else{
         for (int j = 0; j < s->friends_count; j++) {
             printf("%s", s->friends[j]);
             if (j < s->friends_count - 1) printf(", ");
+            }
         }
-        if (s->friends_count == 0) printf("(chua co)");
         printf("\n");
     }
 }
@@ -279,13 +282,13 @@ static void search_student(Graph* g, HobbyTable* hobby_table, HabitTable* habit_
 
         printf("So thich:");
         for (int i=0; i<found_student->hobbies_count; i++){
-            printf("%s", hobby_table->list[i]);
+            printf("%s", found_student->hobbies[i]);
             if (i<found_student->hobbies_count -1) printf(", ");
         }
         printf ("\n");
         printf("Thoi quen:");
         for (int i=0; i<found_student->habits_count; i++){
-            printf("%s", habit_table->list[i]);
+            printf("%s", found_student->habits[i]);
             if (i<found_student->habits_count -1) printf(", ");
         }
          printf("\n");
@@ -302,6 +305,7 @@ static void search_student(Graph* g, HobbyTable* hobby_table, HabitTable* habit_
 void cli_run(Graph* graph, HobbyTable* hobby_table, HabitTable* habit_table) {
     int choice = -1;
     char input[MAX_INPUT_LEN];
+  //  printf ("%d", graph->student_count);
 
     while (1) {
         printf("\n===== HE THONG GOI Y BAN BE =====\n");

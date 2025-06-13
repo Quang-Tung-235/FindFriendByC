@@ -22,6 +22,7 @@ int graph_add_student(Graph* g, const Student* s) {
     if (g->student_count >= MAX_STUDENTS) return 0;
     if (graph_find_student_index(g, s->id) != -1) return 0;
     g->students[g->student_count++] = *s;
+   // g->student_count++;
     return 1;
 }
 

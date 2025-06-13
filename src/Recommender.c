@@ -56,7 +56,6 @@ void recommend_friends(Graph* g, const char* user_id, int k, double weight_mutua
         }
     }
 
-    // Sắp xếp giảm dần theo điểm
     for (int i = 0; i < candidate_count - 1; i++) {
         for (int j = i + 1; j < candidate_count; j++) {
             if (candidates[i].score < candidates[j].score) {
@@ -67,14 +66,12 @@ void recommend_friends(Graph* g, const char* user_id, int k, double weight_mutua
         }
     }
 
-    // In kết quả có tên bạn bè
     printf("Goi y ban be cho %s (ID: %s):\n", user->name, user->id);
     for (int i = 0; i < k && i < candidate_count; i++) {
         Student* sug = graph_get_student(g, candidates[i].id);
         if (sug) {
             printf("%d. %s (ID: %s) - Diem: %.2f\n", i + 1, sug->name, sug->id, candidates[i].score);
         } else {
-            // Dự phòng, nếu không tìm thấy
             printf("%d. %s (ID: %s) - Diem: %.2f\n", i + 1, candidates[i].id, candidates[i].id, candidates[i].score);
         }
     }
